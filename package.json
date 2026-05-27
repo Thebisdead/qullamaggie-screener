@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qullamaggie 3 Setups 美股筛选器</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e14;--bg2:#111722;--bg3:#1a2030;--bg4:#212840;
+  --border:#2a3348;--text:#dde4f0;--muted:#6b7a99;
+  --green:#2dd88a;--red:#ff5c6e;--amber:#f5a623;--blue:#4d9eff;--purple:#a78bfa;
+  --bo:#2dd88a;--ep:#4d9eff;--ps:#ff5c6e;
+}
+body{font-family:'SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* ── Header ── */
+header{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--bg2)}
+.logo h1{font-size:16px;font-weight:700;letter-spacing:-.3px}
+.logo p{font-size:11px;color:var(--muted);margin-top:3px}
+.setup-legend{display:flex;gap:12px;align-items:center}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+.hdr-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.last-upd{font-size:11px;color:var(--muted)}
+
+/* ── Buttons ── */
+.btn{padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-family:inherit}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:linear-gradient(135deg,#1a6eff,#0048d4);border-color:#1a6eff;color:#fff;font-weight:600}
+.btn.primary:hover{opacity:.88}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sm{padding:4px 10px;font-size:12px}
+
+/* ── Progress ── */
+.prog-bar{height:2px;background:var(--border)}
+.prog-fill{height:2px;background:linear-gradient(90deg,#1a6eff,#2dd88a);transition:width .4s;width:0}
+
+/* ── Phase tabs ── */
+.phase-bar{display:flex;border-bottom:1px solid var(--border);padding:0 24px;background:var(--bg2)}
+.phase-tab{padding:11px 20px;font-size:13px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap}
+.phase-tab.active{color:var(--text);border-bottom-color:var(--blue);font-weight:500}
+.panel{display:none}.panel.active{display:block}
+
+/* ── Sector cards ── */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:20px 24px}
+.sec-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.sec-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.sec-card.rank-1::before{background:linear-gradient(90deg,#f5a623,#ff5c6e)}
+.sec-card.rank-2::before{background:linear-gradient(90deg,#aaa,#ccc)}
+.sec-card.rank-3::before{background:linear-gradient(90deg,#cd7f32,#a0522d)}
+.sec-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.heat-tag{position:absolute;top:14px;right:14px;font-size:10px;padding:2px 8px;border-radius:999px;font-weight:600}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.card-name{font-size:15px;font-weight:700}
+.card-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.heat-num{font-size:32px;font-weight:800;line-height:1}
+.heat-lbl{font-size:10px;color:var(--muted);text-align:right;margin-top:2px}
+.hbar-bg{height:4px;background:var(--bg3);border-radius:2px;margin:10px 0}
+.hbar-fill{height:4px;border-radius:2px;transition:width .8s}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.met{background:var(--bg3);border-radius:6px;padding:6px 10px}
+.met-l{font-size:10px;color:var(--muted);margin-bottom:2px}
+.met-v{font-size:13px;font-weight:700}
+.mover-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--bg3);font-size:11px}
+.mover-row:last-child{border:none}
+.drill-btn{width:100%;padding:8px;border-radius:7px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;margin-top:4px}
+.drill-btn:hover{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* ── Screener toolbar ── */
+.filter-banner{padding:10px 24px;background:rgba(77,158,255,.07);border-bottom:1px solid rgba(77,158,255,.18);font-size:12px;color:var(--muted);line-height:1.8}
+.filter-banner strong{color:var(--text)}
+.setup-pills-bar{display:flex;gap:6px;padding:10px 24px;flex-wrap:wrap;border-bottom:1px solid var(--border);align-items:center}
+.setup-pill{padding:5px 14px;border-radius:999px;border:1px solid var(--border);font-size:12px;cursor:pointer;color:var(--muted);background:transparent;white-space:nowrap;transition:all .15s;font-family:inherit}
+.setup-pill:hover{color:var(--text)}
+.setup-pill.active{font-weight:600}
+.setup-pill[data-setup="all"].active{border-color:var(--blue);color:var(--blue);background:rgba(77,158,255,.1)}
+.setup-pill[data-setup="Breakout"].active{border-color:var(--bo);color:var(--bo);background:rgba(45,216,138,.1)}
+.setup-pill[data-setup="EP"].active{border-color:var(--ep);color:var(--ep);background:rgba(77,158,255,.1)}
+.setup-pill[data-setup="Parabolic Short"].active{border-color:var(--ps);color:var(--ps);background:rgba(255,92,110,.1)}
+.stats-row{display:flex;gap:10px;padding:12px 24px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 14px}
+.stat .sl{font-size:11px;color:var(--muted);margin-bottom:2px}
+.stat .sv{font-size:20px;font-weight:700}
+.breadcrumb{padding:9px 24px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.breadcrumb a{color:var(--blue);cursor:pointer;text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline}
+.sec-pills{display:flex;gap:5px;padding:10px 24px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.pill{padding:4px 12px;border-radius:999px;border:1px solid var(--border);font-size:12px;cursor:pointer;color:var(--muted);background:transparent;white-space:nowrap;transition:all .15s;font-family:inherit}
+.pill:hover{color:var(--text)}
+.pill.active{background:var(--bg3);border-color:var(--blue);color:var(--text);font-weight:500}
+.toolbar{display:flex;gap:8px;padding:10px 24px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.toolbar label{font-size:12px;color:var(--muted)}
+select{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-size:13px;cursor:pointer;font-family:inherit}
+.range-grp{display:flex;align-items:center;gap:6px}
+input[type=range]{width:80px;accent-color:var(--blue);cursor:pointer}
+.scan-info{padding:8px 24px;font-size:12px;color:var(--muted);background:var(--bg2);border-bottom:1px solid var(--border);display:none;align-items:center;gap:10px}
+.scan-info.visible{display:flex}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto;padding-bottom:80px}
+table{width:100%;border-collapse:collapse;min-width:1000px}
+thead th{position:sticky;top:0;z-index:10;background:var(--bg);padding:10px 12px;text-align:left;font-size:11px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
+thead th:hover{color:var(--text)}
+tbody tr{border-bottom:1px solid var(--bg2);transition:background .1s}
+tbody tr:hover{background:var(--bg2)}
+td{padding:10px 12px;vertical-align:middle}
+.ticker-sym{font-size:14px;font-weight:700}
+.ticker-sym a{color:var(--text);text-decoration:none}
+.ticker-sym a:hover{color:var(--blue)}
+.setup-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;margin-top:3px;letter-spacing:.3px}
+.setup-badge.Breakout{background:rgba(45,216,138,.15);color:var(--bo);border:1px solid rgba(45,216,138,.3)}
+.setup-badge.EP{background:rgba(77,158,255,.15);color:var(--ep);border:1px solid rgba(77,158,255,.3)}
+.setup-badge.ps{background:rgba(255,92,110,.15);color:var(--ps);border:1px solid rgba(255,92,110,.3)}
+.score-wrap{display:flex;align-items:center;gap:8px;min-width:80px}
+.score-num{font-size:16px;font-weight:800;min-width:26px}
+.sbar-bg{flex:1;height:3px;background:var(--bg3);border-radius:2px}
+.sbar-fill{height:3px;border-radius:2px}
+.up{color:var(--green)}.dn{color:var(--red)}.neu{color:var(--muted)}.amb{color:var(--amber)}
+.chips{display:flex;flex-wrap:wrap;gap:3px}
+.chip{font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:600}
+.chip.pass{background:rgba(45,216,138,.12);color:var(--green);border:1px solid rgba(45,216,138,.25)}
+.chip.warn{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.25)}
+.chip.short{background:rgba(255,92,110,.12);color:var(--red);border:1px solid rgba(255,92,110,.25)}
+.kz{font-size:11px;line-height:1.9;color:var(--muted)}
+.kz strong{color:var(--text);font-size:12px}
+.kz .in{color:var(--green);font-weight:700}
+.kz .above{color:var(--amber)}
+.kz .below{color:var(--red)}
+.trade-plan{font-size:11px;line-height:1.9}
+.trade-plan .sl-val{color:var(--red);font-weight:700}
+.trade-plan .tp-val{color:var(--green);font-weight:700}
+.loading{text-align:center;padding:60px 24px;color:var(--muted)}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:60px 24px;color:var(--muted);font-size:15px}
+.ep-detail{font-size:10px;color:var(--muted);margin-top:2px}
+.ep-detail span{color:var(--ep);font-weight:600}
+.para-detail{font-size:10px;color:var(--muted);margin-top:2px}
+.para-detail span{color:var(--ps);font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>📈 Qullamaggie 3 Setups 美股筛选器</h1>
+    <p>Breakout（突破）· Episodic Pivot（EP 催化剂）· Parabolic Short（抛物线做空）</p>
+  </div>
+  <div class="setup-legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--bo)"></div>Breakout</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--ep)"></div>EP</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--ps)"></div>Para Short</div>
+  </div>
+  <div class="hdr-right">
+    <span class="last-upd" id="last-upd"></span>
+    <button class="btn primary" id="main-btn" onclick="mainAction()">🔥 扫描板块热度</button>
+  </div>
+</header>
+
+<div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+
+<div class="phase-bar">
+  <div class="phase-tab active" id="tab-sectors" onclick="showPanel('sectors')">🔥 板块热度</div>
+  <div class="phase-tab" id="tab-stocks" onclick="showPanel('stocks')">📊 Setup 筛选</div>
+</div>
+
+<!-- PANEL 1: Sector Heatmap -->
+<div class="panel active" id="panel-sectors">
+  <div id="sec-content">
+    <div class="empty" style="padding:80px 24px">
+      点击「扫描板块热度」获取实时板块排行<br>
+      <span style="font-size:12px;margin-top:8px;display:block;color:var(--muted)">约需 10–15 秒</span>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL 2: Stock Screener -->
+<div class="panel" id="panel-stocks">
+  <div class="breadcrumb">
+    <a onclick="showPanel('sectors')">← 板块热度</a> /
+    <span id="crumb-label">全部</span>
+  </div>
+
+  <div class="filter-banner">
+    <strong>Qullamaggie 三大 Setup 筛选逻辑：</strong>
+    &nbsp;
+    <span style="color:var(--bo)">▲ Breakout</span>：EMA多头排列 + 过去100天有≥30%大涨 + 价格回调至EMA关键区 + ADR≥4%
+    &nbsp;·&nbsp;
+    <span style="color:var(--ep)">★ EP</span>：跳空≥10% + 成交量≥均量2x + 过去3个月未大幅上涨（被忽视）
+    &nbsp;·&nbsp;
+    <span style="color:var(--ps)">▼ Para Short</span>：15日内暴涨≥60% + 连续上涨≥3天 + 出现衰竭信号
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="sl">全部结果</div><div class="sv" id="cnt-all">—</div></div>
+    <div class="stat"><div class="sl" style="color:var(--bo)">Breakout</div><div class="sv" style="color:var(--bo)" id="cnt-bo">—</div></div>
+    <div class="stat"><div class="sl" style="color:var(--ep)">EP</div><div class="sv" style="color:var(--ep)" id="cnt-ep">—</div></div>
+    <div class="stat"><div class="sl" style="color:var(--ps)">Parabolic Short</div><div class="sv" style="color:var(--ps)" id="cnt-ps">—</div></div>
+    <div class="stat"><div class="sl">扫描总数</div><div class="sv" id="cnt-total">—</div></div>
+  </div>
+
+  <div class="setup-pills-bar">
+    <span style="font-size:12px;color:var(--muted);margin-right:4px">Setup：</span>
+    <button class="setup-pill active" data-setup="all" onclick="setSetupFilter('all')">全部</button>
+    <button class="setup-pill" data-setup="Breakout" onclick="setSetupFilter('Breakout')">▲ Breakout</button>
+    <button class="setup-pill" data-setup="EP" onclick="setSetupFilter('EP')">★ Episodic Pivot</button>
+    <button class="setup-pill" data-setup="Parabolic Short" onclick="setSetupFilter('Parabolic Short')">▼ Parabolic Short</button>
+  </div>
+
+  <div class="sec-pills" id="sec-pills"></div>
+
+  <div class="toolbar">
+    <label>排序</label>
+    <select id="sort-sel" onchange="renderTable()">
+      <option value="score">评分</option>
+      <option value="adr">ADR%</option>
+      <option value="volSurge">量能倍数</option>
+      <option value="chg1mo">月涨幅</option>
+      <option value="pullbackPct">回调幅度</option>
+      <option value="keyZoneWidth">关键区宽度</option>
+    </select>
+    <label>最低评分</label>
+    <div class="range-grp">
+      <input type="range" id="score-min" min="50" max="95" value="55" step="5"
+        oninput="document.getElementById('score-lbl').textContent=this.value;renderTable()">
+      <span id="score-lbl" style="font-size:12px;min-width:22px">55</span>
+    </div>
+    <label>加分条件</label>
+    <select id="extra-sel" onchange="renderTable()">
+      <option value="all">无</option>
+      <option value="ema">EMA多头排列</option>
+      <option value="consol">有横盘整理</option>
+      <option value="weekly">周线向上</option>
+      <option value="inzone">价格在关键区内</option>
+    </select>
+    <button class="btn sm" id="rescan-btn" style="margin-left:auto" onclick="scanStocks(activeSector)">↺ 重新扫描</button>
+  </div>
+
+  <div class="scan-info" id="scan-info">
+    <div class="spinner" style="width:16px;height:16px;border-width:2px;flex-shrink:0"></div>
+    <span id="scan-msg">正在扫描...</span>
+  </div>
+
+  <div class="tbl-wrap">
+    <div id="stock-content"><div class="empty">请先从板块热度页面选择板块，或点击「扫描全部」</div></div>
+  </div>
+</div>
+
+<script>
+let sectorData=[],stockData=[],activeSector=null,activeSecPill='all',activeSetupFilter='all';
+let scanning=false,sortKey='score',sortAsc=false;
+
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.phase-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  const btn=document.getElementById('main-btn');
+  if(name==='sectors'){
+    btn.textContent=sectorData.length?'↺ 重新扫描板块':'🔥 扫描板块热度';
+    btn.onclick=scanSectors;
+  } else {
+    btn.textContent='📊 扫描全部股票';
+    btn.onclick=()=>scanStocks(null);
+  }
+}
+
+function mainAction(){
+  document.getElementById('panel-sectors').classList.contains('active')?scanSectors():scanStocks(activeSector);
+}
+
+function setProgress(p){
+  document.getElementById('prog').style.width=p+'%';
+  if(p>=100)setTimeout(()=>setProgress(0),800);
+}
+
+function setLastUpdate(iso){
+  const d=new Date(iso);
+  document.getElementById('last-upd').textContent=
+    `更新 ${d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}`;
+}
+
+// ── SECTOR HEATMAP ────────────────────────────────────────────────────────────
+async function scanSectors(){
+  if(scanning)return; scanning=true;
+  const btn=document.getElementById('main-btn');
+  btn.disabled=true; btn.textContent='⏳ 扫描中...'; setProgress(15);
+  document.getElementById('sec-content').innerHTML=
+    `<div class="loading"><div class="spinner"></div><div>正在获取板块实时热度...</div></div>`;
+  try{
+    setProgress(40);
+    const r=await fetch('/api/sectors');
+    setProgress(90);
+    const json=await r.json();
+    sectorData=json.data??[];
+    setLastUpdate(json.updatedAt);
+    document.getElementById('last-upd').textContent+=` · ${json.totalQuotes??'—'} 只报价`;
+    setProgress(100);
+    renderSectors();
+  } catch(e){
+    document.getElementById('sec-content').innerHTML=
+      `<div class="empty">⚠️ 获取失败：${e.message}</div>`;
+    setProgress(0);
+  }
+  scanning=false; btn.disabled=false;
+  btn.textContent='↺ 重新扫描板块'; btn.onclick=scanSectors;
+}
+
+const heatColor=h=>h>=75?'#ff5c6e':h>=55?'#f5a623':h>=35?'#4d9eff':'#6b7a99';
+const heatLabel=h=>h>=75?'🔥 超热':h>=55?'🌡 热门':h>=35?'💧 温和':'❄ 清淡';
+
+function renderSectors(){
+  if(!sectorData.length){
+    document.getElementById('sec-content').innerHTML=
+      `<div class="empty">⚠️ 未获取到板块数据</div>`;
+    return;
+  }
+  const html=sectorData.map((s,i)=>{
+    const col=heatColor(s.heat);
+    const chgC=s.avgChg>0?'up':s.avgChg<0?'dn':'neu';
+    const movers=(s.topMovers??[]).map(m=>{
+      const mc=m.chg>0?'up':m.chg<0?'dn':'neu';
+      return `<div class="mover-row">
+        <span style="font-weight:700">${m.ticker}</span>
+        <span style="color:var(--muted)"><span class="${mc}">${m.chg>0?'+':''}${m.chg}%</span> · ×${m.volRatio}</span>
+      </div>`;
+    }).join('');
+    return `<div class="sec-card ${i<3?'rank-'+(i+1):''}">
+      <span class="heat-tag" style="background:${col}22;color:${col}">${heatLabel(s.heat)}</span>
+      <div class="card-top">
+        <div>
+          <div class="card-name">${s.sector}</div>
+          <div class="card-sub">${s.tickerCount} 只样本</div>
+        </div>
+        <div style="text-align:right">
+          <div class="heat-num" style="color:${col}">${s.heat}</div>
+          <div class="heat-lbl">热度分</div>
+        </div>
+      </div>
+      <div class="hbar-bg"><div class="hbar-fill" style="width:${s.heat}%;background:${col}"></div></div>
+      <div class="metrics">
+        <div class="met"><div class="met-l">今日均涨</div><div class="met-v ${chgC}">${s.avgChg>0?'+':''}${s.avgChg}%</div></div>
+        <div class="met"><div class="met-l">量能倍数</div><div class="met-v">×${s.avgVolRatio.toFixed(1)}</div></div>
+        <div class="met"><div class="met-l">上涨占比</div><div class="met-v">${s.breadth}%</div></div>
+        <div class="met"><div class="met-l">近52周高</div><div class="met-v">${s.nearHighPct}%</div></div>
+      </div>
+      ${movers?`<div style="margin-bottom:10px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px">今日最大波动</div>${movers}
+      </div>`:''}
+      <button class="drill-btn" onclick="drillInto('${s.sector}')">进入板块 → 筛选 Setups</button>
+    </div>`;
+  }).join('');
+  document.getElementById('sec-content').innerHTML=
+    `<div class="sector-grid">${html}</div>
+    <div style="padding:0 24px 20px;font-size:11px;color:var(--muted)">
+      热度算法：量能倍数(35%) + 上涨占比(20%) + 均涨幅(20%) + 近52周高(15%) + ADR代理(10%)
+    </div>`;
+}
+
+// ── STOCK SCREENER ────────────────────────────────────────────────────────────
+async function drillInto(sector){
+  activeSector=sector; showPanel('stocks'); await scanStocks(sector);
+}
+
+async function scanStocks(sector){
+  if(scanning)return; scanning=true;
+  activeSector=sector??null;
+  const rescanBtn=document.getElementById('rescan-btn'),mainBtn=document.getElementById('main-btn');
+  rescanBtn.disabled=mainBtn.disabled=true;
+  mainBtn.textContent='⏳ 扫描中...';
+  const label=sector??'全部股票';
+  document.getElementById('crumb-label').textContent=label;
+  document.getElementById('scan-info').classList.add('visible');
+  document.getElementById('scan-msg').textContent=
+    sector?`正在扫描「${sector}」...`:'正在扫描全部股票（约 30–60 秒）...';
+  setProgress(10);
+  document.getElementById('stock-content').innerHTML=
+    `<div class="loading"><div class="spinner"></div>
+    <div>正在识别 ${sector?'「'+sector+'」':'全部'} Qullamaggie Setups...</div>
+    <div style="font-size:12px;margin-top:6px;color:var(--muted)">
+      检测：EMA多头排列 · 放量大涨 · EP跳空 · 抛物线信号
+    </div></div>`;
+  try{
+    setProgress(30);
+    const qs=sector?`?sector=${encodeURIComponent(sector)}`:'';
+    const r=await fetch('/api/screen'+qs);
+    setProgress(90);
+    const json=await r.json();
+    stockData=json.data??[];
+    setLastUpdate(json.updatedAt);
+    document.getElementById('cnt-total').textContent=json.total??'—';
+    setProgress(100);
+    buildSecPills();
+    renderTable();
+  } catch(e){
+    document.getElementById('stock-content').innerHTML=
+      `<div class="empty">⚠️ 获取失败：${e.message}</div>`;
+    setProgress(0);
+  }
+  scanning=false;
+  document.getElementById('scan-info').classList.remove('visible');
+  rescanBtn.disabled=mainBtn.disabled=false;
+  mainBtn.textContent=activeSector?'↺ 重新扫描':'📊 扫描全部股票';
+}
+
+function buildSecPills(){
+  const sectors=['全部',...new Set(stockData.map(d=>d.sector))].sort();
+  document.getElementById('sec-pills').innerHTML=sectors.map(s=>{
+    const v=s==='全部'?'all':s;
+    return `<button class="pill ${activeSecPill===v?'active':''}" onclick="setSecPill('${v}')">${s}</button>`;
+  }).join('');
+}
+
+function setSecPill(v){ activeSecPill=v; buildSecPills(); renderTable(); }
+
+function setSetupFilter(v){
+  activeSetupFilter=v;
+  document.querySelectorAll('.setup-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`.setup-pill[data-setup="${v}"]`)?.classList.add('active');
+  renderTable();
+}
+
+const scoreColor=s=>s>=85?'#2dd88a':s>=70?'#f5a623':'#6b7a99';
+
+function sortBy(k){
+  if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=false;}
+  renderTable();
+}
+
+function renderTable(){
+  const scoreMin=+document.getElementById('score-min').value;
+  const extra=document.getElementById('extra-sel').value;
+  sortKey=document.getElementById('sort-sel').value;
+
+  let list=stockData.filter(d=>{
+    if(activeSecPill!=='all'&&d.sector!==activeSecPill)return false;
+    if(activeSetupFilter!=='all'&&d.setup!==activeSetupFilter)return false;
+    if(d.score<scoreMin)return false;
+    if(extra==='ema'&&!d.emaAligned)return false;
+    if(extra==='consol'&&!d.isConsolidating)return false;
+    if(extra==='weekly'&&!d.weeklyUp)return false;
+    if(extra==='inzone'&&!d.inKeyZone)return false;
+    return true;
+  }).sort((a,b)=>sortAsc?a[sortKey]-b[sortKey]:b[sortKey]-a[sortKey]);
+
+  // Update counts
+  const allD=stockData.filter(d=>activeSecPill==='all'||d.sector===activeSecPill);
+  document.getElementById('cnt-all').textContent=allD.length;
+  document.getElementById('cnt-bo').textContent=allD.filter(d=>d.setup==='Breakout').length;
+  document.getElementById('cnt-ep').textContent=allD.filter(d=>d.setup==='EP').length;
+  document.getElementById('cnt-ps').textContent=allD.filter(d=>d.setup==='Parabolic Short').length;
+
+  if(!list.length){
+    document.getElementById('stock-content').innerHTML=
+      '<div class="empty">没有符合条件的 Setup<br><span style="font-size:13px;color:var(--muted);margin-top:8px;display:block">可尝试降低最低评分，或切换 Setup 类型</span></div>';
+    return;
+  }
+
+  document.getElementById('stock-content').innerHTML=`
+  <table>
+    <thead><tr>
+      <th onclick="sortBy('ticker')">股票</th>
+      <th onclick="sortBy('score')">评分 ↕</th>
+      <th onclick="sortBy('price')">实时价</th>
+      <th onclick="sortBy('chg1mo')">月涨幅 ↕</th>
+      <th onclick="sortBy('surgeMovePct')">大涨幅 ↕</th>
+      <th onclick="sortBy('pullbackPct')">回调% ↕</th>
+      <th onclick="sortBy('adr')">ADR% ↕</th>
+      <th onclick="sortBy('keyZoneWidth')">EMA关键区</th>
+      <th>Setup 详情</th>
+      <th>交易参考</th>
+      <th>加分条件</th>
+    </tr></thead>
+    <tbody>${list.map(d=>{
+      const sc=d.score, col=scoreColor(sc);
+      const c1m=d.chg1mo>0?'up':d.chg1mo<0?'dn':'neu';
+      const cPb=d.pullbackPct<=-5&&d.pullbackPct>=-35?'up':d.pullbackPct>-5?'amb':'dn';
+      const tv=`https://www.tradingview.com/chart/?symbol=${d.ticker}`;
+      const setupClass=d.setup==='Breakout'?'Breakout':d.setup==='EP'?'EP':'ps';
+
+      const pricePos=d.price>=d.keyZoneBot*0.98&&d.price<=d.keyZoneTop*1.02
+        ?`<span class="in">● 在区内</span>`
+        :d.price>d.keyZoneTop
+        ?`<span class="above">▲ 高于区 ${((d.price-d.keyZoneTop)/d.price*100).toFixed(1)}%</span>`
+        :`<span class="below">▼ 低于区 ${((d.keyZoneBot-d.price)/d.price*100).toFixed(1)}%</span>`;
+
+      // Setup-specific detail line
+      let setupDetail='';
+      if(d.setup==='EP'&&d.epData){
+        setupDetail=`<div class="ep-detail">跳空 <span>+${d.epData.gapPct}%</span> · 量 <span>×${d.epData.volRatio}</span>${d.epData.notExtended?' · 未扩展':''}</div>`;
+      } else if(d.setup==='Parabolic Short'&&d.paraData){
+        setupDetail=`<div class="para-detail">15日涨 <span>${d.paraData.runPct}%</span> · 连涨 <span>${d.paraData.consecUp}天</span>${d.paraData.todayFading?' · 今日衰竭':''}</div>`;
+      } else if(d.setup==='Breakout'){
+        setupDetail=`<div style="font-size:10px;color:var(--muted);margin-top:2px">整理宽度 ${d.consolRange}% ${d.isConsolidating?'· <span style=color:var(--bo)>紧缩整理</span>':''}</div>`;
+      }
+
+      return `<tr>
+        <td>
+          <div class="ticker-sym"><a href="${tv}" target="_blank">${d.ticker}</a></div>
+          <div><span class="setup-badge ${setupClass}">${d.setup==='Parabolic Short'?'Para Short':d.setup}</span></div>
+          ${setupDetail}
+        </td>
+        <td>
+          <div class="score-wrap">
+            <span class="score-num" style="color:${col}">${sc}</span>
+            <div class="sbar-bg"><div class="sbar-fill" style="width:${sc}%;background:${col}"></div></div>
+          </div>
+        </td>
+        <td><strong>$${d.price.toFixed(2)}</strong><div style="font-size:10px;color:var(--muted)">${d.sector}</div></td>
+        <td class="${c1m}">${d.chg1mo>0?'+':''}${d.chg1mo.toFixed(1)}%</td>
+        <td class="up">+${d.surgeMovePct}%</td>
+        <td>
+          <span class="${cPb}" style="font-weight:700">${d.pullbackPct}%</span>
+          <div style="font-size:10px;color:var(--muted)">距大涨高点</div>
+        </td>
+        <td>${d.adr.toFixed(1)}%</td>
+        <td class="kz">
+          <div><strong>$${d.keyZoneBot} – $${d.keyZoneTop}</strong></div>
+          <div>宽度 ${d.keyZoneWidth}%</div>
+          <div style="margin-top:2px">${pricePos}</div>
+          <div style="font-size:10px;margin-top:2px">
+            EMA10 $${d.ema10} · EMA21 $${d.ema21}
+          </div>
+          <div style="font-size:10px;color:var(--muted)">AVWAP $${d.avwap}</div>
+        </td>
+        <td class="kz">
+          <div>EMA50 <strong>$${d.ema50}</strong></div>
+          <div style="margin-top:2px">${d.emaAligned?'<span style="color:var(--green);font-weight:600">✓ EMA多头排列</span>':'<span style="color:var(--muted)">EMA未对齐</span>'}</div>
+          <div>${d.weeklyUp?'<span style="color:var(--green);font-size:10px">↗ 周线向上</span>':'<span style="color:var(--muted);font-size:10px">周线中性</span>'}</div>
+        </td>
+        <td class="trade-plan">
+          <div>止损 <span class="sl-val">$${d.suggestedSL}</span> (-${d.slPct}%)</div>
+          <div>TP1 <span class="tp-val">$${d.tp1}</span> (3R)</div>
+          <div>TP2 <span class="tp-val">$${d.tp2}</span> (5R)</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">量 ×${d.volSurge.toFixed(1)}</div>
+        </td>
+        <td>
+          <div class="chips">
+            ${d.emaAligned?'<span class="chip pass">EMA对齐</span>':''}
+            ${d.isConsolidating?'<span class="chip pass">紧缩整理</span>':''}
+            ${d.weeklyUp?'<span class="chip pass">周线向上</span>':''}
+            ${d.inKeyZone?'<span class="chip pass">在关键区</span>':''}
+            ${d.volSurge>=2?'<span class="chip pass">量×'+d.volSurge.toFixed(1)+'</span>':''}
+            ${d.adr>=6?'<span class="chip pass">ADR '+d.adr+'%</span>':''}
+            ${d.setup==='Parabolic Short'?'<span class="chip short">做空机会</span>':''}
+            ${d.setup==='EP'?'<span class="chip pass">EP催化剂</span>':''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+</script>
+</body>
+</html>
