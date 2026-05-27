@@ -1,0 +1,8 @@
+{
+  "name": "qullamaggie-screener",
+  "version": "1.0.0",
+  "description": "Qullamaggie 3 Setups 美股筛选器 — Breakout + EP + Parabolic Short",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
