@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/api/screen-breakout",  "destination": "/api/screen-breakout" },
+    { "source": "/api/screen-ep",        "destination": "/api/screen-ep" },
+    { "source": "/api/screen-parabolic", "destination": "/api/screen-parabolic" },
+    { "source": "/api/sectors",          "destination": "/api/sectors" }
+  ]
+}
