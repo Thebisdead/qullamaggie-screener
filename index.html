@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qullamaggie 3 Setups Screener</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e14;--bg2:#111722;--bg3:#1a2030;--border:#2a3348;
+  --text:#dde4f0;--muted:#6b7a99;
+  --green:#2dd88a;--red:#ff5c6e;--amber:#f5a623;--blue:#4d9eff;
+  --bo:#2dd88a;--ep:#4d9eff;--ps:#ff5c6e;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+header{padding:12px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--bg2)}
+.logo h1{font-size:15px;font-weight:700}
+.logo p{font-size:11px;color:var(--muted);margin-top:2px}
+.last-upd{font-size:11px;color:var(--muted)}
+.prog-bar{height:2px;background:var(--border)}
+.prog-fill{height:2px;background:linear-gradient(90deg,#1a6eff,#2dd88a);transition:width .4s;width:0}
+/* Tabs */
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px}
+.tab{padding:12px 20px;font-size:13px;cursor:pointer;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px;font-weight:500}
+.tab:hover{color:var(--text)}
+.tab.act-bo{color:var(--bo);border-bottom-color:var(--bo)}
+.tab.act-ep{color:var(--ep);border-bottom-color:var(--ep)}
+.tab.act-ps{color:var(--ps);border-bottom-color:var(--ps)}
+.tab.act-sec{color:var(--amber);border-bottom-color:var(--amber)}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.panel{display:none}.panel.active{display:block}
+/* Buttons */
+.btn{padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-family:inherit;font-weight:600}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn-bo{background:rgba(45,216,138,.12);border-color:var(--bo);color:var(--bo)}.btn-bo:hover{background:rgba(45,216,138,.22)}
+.btn-ep{background:rgba(77,158,255,.12);border-color:var(--ep);color:var(--ep)}.btn-ep:hover{background:rgba(77,158,255,.22)}
+.btn-ps{background:rgba(255,92,110,.12);border-color:var(--ps);color:var(--ps)}.btn-ps:hover{background:rgba(255,92,110,.22)}
+.btn-sec{background:rgba(245,166,35,.12);border-color:var(--amber);color:var(--amber)}.btn-sec:hover{background:rgba(245,166,35,.22)}
+.btn-sm{padding:4px 10px;font-size:12px}
+/* Setup header */
+.s-header{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.s-title{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.4px}
+.badge-bo{background:rgba(45,216,138,.15);color:var(--bo);border:1px solid rgba(45,216,138,.3)}
+.badge-ep{background:rgba(77,158,255,.15);color:var(--ep);border:1px solid rgba(77,158,255,.3)}
+.badge-ps{background:rgba(255,92,110,.15);color:var(--ps);border:1px solid rgba(255,92,110,.3)}
+.dir-long{background:rgba(45,216,138,.2);color:var(--green);font-size:10px;padding:2px 7px;border-radius:3px;font-weight:700}
+.dir-short{background:rgba(255,92,110,.2);color:var(--red);font-size:10px;padding:2px 7px;border-radius:3px;font-weight:700}
+.desc{font-size:12px;color:var(--muted);line-height:1.7;max-width:750px}
+.desc strong{color:var(--text)}
+/* Conditions */
+.cond-bar{padding:10px 24px 12px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;flex-wrap:wrap;gap:8px}
+.cond{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 10px}
+.cond-n{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.cn-bo{background:rgba(45,216,138,.2);color:var(--bo)}
+.cn-ep{background:rgba(77,158,255,.2);color:var(--ep)}
+.cn-ps{background:rgba(255,92,110,.2);color:var(--ps)}
+/* Stats */
+.stats{display:flex;gap:8px;padding:10px 24px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:7px 14px}
+.stat .l{font-size:10px;color:var(--muted);margin-bottom:1px}
+.stat .v{font-size:17px;font-weight:700}
+/* Toolbar */
+.toolbar{display:flex;gap:8px;padding:8px 24px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.toolbar label{font-size:12px;color:var(--muted)}
+select{background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit}
+.rg{display:flex;align-items:center;gap:5px}
+input[type=range]{width:75px;accent-color:var(--blue);cursor:pointer}
+/* Scanning */
+.scanning{padding:7px 24px;font-size:12px;color:var(--muted);background:var(--bg2);border-bottom:1px solid var(--border);display:none;align-items:center;gap:8px}
+.scanning.on{display:flex}
+.spin{width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Table */
+.tw{overflow-x:auto;padding-bottom:80px}
+table{width:100%;border-collapse:collapse;min-width:900px}
+thead th{position:sticky;top:0;z-index:10;background:var(--bg);padding:8px 12px;text-align:left;font-size:11px;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--text)}
+tbody tr{border-bottom:1px solid var(--bg2)}
+tbody tr:hover{background:var(--bg2)}
+td{padding:9px 12px;vertical-align:middle}
+.sym a{font-size:14px;font-weight:700;color:var(--text);text-decoration:none}
+.sym a:hover{color:var(--blue)}
+.sub{font-size:10px;color:var(--muted);margin-top:2px}
+.sc-wrap{display:flex;align-items:center;gap:6px;min-width:70px}
+.sc-n{font-size:14px;font-weight:800;min-width:22px;text-align:right}
+.sb{flex:1;height:3px;background:var(--bg3);border-radius:2px}
+.sbf{height:3px;border-radius:2px}
+.up{color:var(--green)}.dn{color:var(--red)}.neu{color:var(--muted)}.amb{color:var(--amber)}
+.chips{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
+.chip{font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600}
+.cg{background:rgba(45,216,138,.12);color:var(--green);border:1px solid rgba(45,216,138,.2)}
+.cr{background:rgba(255,92,110,.12);color:var(--red);border:1px solid rgba(255,92,110,.2)}
+.cb{background:rgba(77,158,255,.12);color:var(--blue);border:1px solid rgba(77,158,255,.2)}
+.ca{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid rgba(245,166,35,.2)}
+.trade{font-size:11px;line-height:2}
+.sl-v{color:var(--red);font-weight:700}
+.tp-v{color:var(--green);font-weight:700}
+.empty{text-align:center;padding:60px 24px;color:var(--muted);font-size:14px}
+.loading{text-align:center;padding:60px 24px;color:var(--muted)}
+.sp-lg{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+/* Sector cards */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:12px;padding:16px 24px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden;transition:all .2s}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc.r1::before{background:linear-gradient(90deg,#f5a623,#ff5c6e)}
+.sc.r2::before{background:#999}
+.sc.r3::before{background:#cd7f32}
+.sc:hover{border-color:var(--blue);transform:translateY(-1px)}
+.sct{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px}
+.scn{font-size:14px;font-weight:700}
+.scs{font-size:10px;color:var(--muted);margin-top:2px}
+.hn{font-size:26px;font-weight:800;line-height:1}
+.hl{font-size:9px;color:var(--muted)}
+.hb{height:3px;background:var(--bg3);border-radius:2px;margin:7px 0}
+.hbf{height:3px;border-radius:2px;transition:width .8s}
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}
+.me{background:var(--bg3);border-radius:5px;padding:4px 8px}
+.mel{font-size:9px;color:var(--muted);margin-bottom:1px}
+.mev{font-size:12px;font-weight:700}
+.mv{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--bg3);font-size:11px}
+.mv:last-child{border:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>📈 Qullamaggie 3 Setups Screener</h1>
+    <p>基于 qullamaggie.com 原文逻辑 · Yahoo Finance · SP500 + NASDAQ</p>
+  </div>
+  <span class="last-upd" id="last-upd"></span>
+</header>
+<div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+
+<div class="tabs">
+  <div class="tab" id="tab-bo" onclick="go('bo')"><div class="dot" style="background:var(--bo)"></div>Breakout</div>
+  <div class="tab" id="tab-ep" onclick="go('ep')"><div class="dot" style="background:var(--ep)"></div>Episodic Pivot</div>
+  <div class="tab" id="tab-ps" onclick="go('ps')"><div class="dot" style="background:var(--ps)"></div>Parabolic Short</div>
+  <div class="tab" id="tab-sec" onclick="go('sec')" style="margin-left:auto">🔥 板块热度</div>
+</div>
+
+<!-- ═══ BREAKOUT ═══ -->
+<div class="panel" id="panel-bo">
+  <div class="s-header">
+    <div>
+      <div class="s-title">
+        <span class="badge badge-bo">SETUP 1</span>
+        <strong style="font-size:15px">Breakout</strong>
+        <span class="dir-long">▲ LONG</span>
+      </div>
+      <div class="desc">
+        <strong>①</strong> 过去1-3个月内有一次 <strong>30-100%+ 大涨</strong>（几天到几周完成）→
+        <strong>②</strong> 之后出现 <strong>2周到2个月的有序整理</strong>：higher lows + 波幅收窄 + 价格沿10/20日均线 surfing →
+        <strong>③</strong> <strong>今日</strong>：Range expansion 突破整理区高点 + 放量
+        · <em>入场=ORH · 止损=当天最低价 · 3-5天后卖1/3到1/2 · EMA10/20跟踪余仓</em>
+      </div>
+    </div>
+    <button class="btn btn-bo" id="btn-bo" onclick="scan('bo')">▲ 扫描 Breakout</button>
+  </div>
+  <div class="cond-bar">
+    <span class="cond"><span class="cond-n cn-bo">1</span>过去1-3月有≥30%大涨</span>
+    <span class="cond"><span class="cond-n cn-bo">2</span>大涨后整理2周–2月</span>
+    <span class="cond"><span class="cond-n cn-bo">3</span>Higher lows（低点不断抬高）</span>
+    <span class="cond"><span class="cond-n cn-bo">4</span>Range收窄（波幅递减）</span>
+    <span class="cond"><span class="cond-n cn-bo">5</span>价格 surfing EMA10/EMA20</span>
+    <span class="cond"><span class="cond-n cn-bo">6</span>今日 range expansion 突破整理区高点</span>
+    <span class="cond"><span class="cond-n cn-bo">7</span>止损宽度 ≤ ATR</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="l">找到</div><div class="v" id="cnt-bo" style="color:var(--bo)">—</div></div>
+    <div class="stat"><div class="l">扫描数</div><div class="v" id="tot-bo">—</div></div>
+    <div class="stat"><div class="l">整理&lt;15%</div><div class="v" id="tight-bo">—</div></div>
+    <div class="stat"><div class="l">量≥2x</div><div class="v" id="vol2-bo">—</div></div>
+    <div class="stat"><div class="l">周线向上</div><div class="v" id="wk-bo">—</div></div>
+  </div>
+  <div class="toolbar">
+    <label>排序</label>
+    <select id="s-bo" onchange="rt('bo')">
+      <option value="score">评分</option>
+      <option value="surgeMovePct">大涨幅</option>
+      <option value="consolRangePct">整理宽度</option>
+      <option value="rangeExpansion">Range扩张</option>
+      <option value="volSurge">量能倍数</option>
+    </select>
+    <label>最低评分</label>
+    <div class="rg">
+      <input type="range" id="m-bo" min="60" max="95" value="60" step="5" oninput="document.getElementById('ml-bo').textContent=this.value;rt('bo')">
+      <span id="ml-bo" style="font-size:12px">60</span>
+    </div>
+    <label>追加过滤</label>
+    <select id="f-bo" onchange="rt('bo')">
+      <option value="">无</option>
+      <option value="weeklyUp">周线向上</option>
+      <option value="tightConsol">整理宽度&lt;10%</option>
+      <option value="highVol">量≥2x</option>
+    </select>
+    <button class="btn btn-sm" onclick="scan('bo')" style="margin-left:auto">↺ 重扫</button>
+  </div>
+  <div class="scanning" id="sc-bo"><div class="spin"></div><span id="scm-bo">扫描中...</span></div>
+  <div class="tw"><div id="c-bo"><div class="empty">点击「扫描 Breakout」开始</div></div></div>
+</div>
+
+<!-- ═══ EP ═══ -->
+<div class="panel" id="panel-ep">
+  <div class="s-header">
+    <div>
+      <div class="s-title">
+        <span class="badge badge-ep">SETUP 2</span>
+        <strong style="font-size:15px">Episodic Pivot</strong>
+        <span class="dir-long">▲ LONG</span>
+      </div>
+      <div class="desc">
+        <strong>前提</strong>：股票过去 <strong>3-6个月横盘 / 被忽视</strong>（非强势上涨状态）→
+        <strong>今日</strong>：重大催化剂（财报/FDA/合同）带来 <strong>跳空≥10%</strong> + <strong>成交量爆炸式放大</strong>
+        · <em>入场=ORH · 止损=当天最低价 · 3-5天后减仓 · EMA10/20跟踪</em>
+      </div>
+    </div>
+    <button class="btn btn-ep" id="btn-ep" onclick="scan('ep')">★ 扫描 EP</button>
+  </div>
+  <div class="cond-bar">
+    <span class="cond"><span class="cond-n cn-ep">1</span>今日跳空 ≥ 10%（vs 昨收价）</span>
+    <span class="cond"><span class="cond-n cn-ep">2</span>今日成交量 ≥ 20日均量 × 2</span>
+    <span class="cond"><span class="cond-n cn-ep">3</span>过去3-6月股价横盘（涨幅&lt;40%）</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="l">找到</div><div class="v" id="cnt-ep" style="color:var(--ep)">—</div></div>
+    <div class="stat"><div class="l">扫描数</div><div class="v" id="tot-ep">—</div></div>
+    <div class="stat"><div class="l">跳空≥20%</div><div class="v" id="g20-ep">—</div></div>
+    <div class="stat"><div class="l">量≥5x</div><div class="v" id="v5-ep">—</div></div>
+    <div class="stat"><div class="l">前期完全平</div><div class="v" id="flat-ep">—</div></div>
+  </div>
+  <div class="toolbar">
+    <label>排序</label>
+    <select id="s-ep" onchange="rt('ep')">
+      <option value="score">评分</option>
+      <option value="gapPct">跳空幅度</option>
+      <option value="volRatio">量能倍数</option>
+      <option value="adr">ADR%</option>
+    </select>
+    <label>最低评分</label>
+    <div class="rg">
+      <input type="range" id="m-ep" min="60" max="95" value="60" step="5" oninput="document.getElementById('ml-ep').textContent=this.value;rt('ep')">
+      <span id="ml-ep" style="font-size:12px">60</span>
+    </div>
+    <label>追加过滤</label>
+    <select id="f-ep" onchange="rt('ep')">
+      <option value="">无</option>
+      <option value="bigGap">跳空≥20%</option>
+      <option value="bigVol">量≥5x</option>
+    </select>
+    <button class="btn btn-sm" onclick="scan('ep')" style="margin-left:auto">↺ 重扫</button>
+  </div>
+  <div class="scanning" id="sc-ep"><div class="spin"></div><span id="scm-ep">扫描中...</span></div>
+  <div class="tw"><div id="c-ep"><div class="empty">点击「扫描 EP」开始</div></div></div>
+</div>
+
+<!-- ═══ PARABOLIC SHORT ═══ -->
+<div class="panel" id="panel-ps">
+  <div class="s-header" style="background:rgba(255,92,110,.03);border-bottom:1px solid rgba(255,92,110,.15)">
+    <div>
+      <div class="s-title">
+        <span class="badge badge-ps">SETUP 3</span>
+        <strong style="font-size:15px">Parabolic Short</strong>
+        <span class="dir-short">▼ SHORT</span>
+      </div>
+      <div class="desc">
+        <strong>条件</strong>：股票在 <strong>几天/几周内暴涨50-100%+</strong>（大盘股）或300-1000%+（小盘股），且 <strong>连续上涨3-5天以上</strong>
+        · <em>入场=ORL（或第一根5分钟阴线 / VWAP失守）· 止损=当天最高价 · 目标=EMA20和EMA10（均值回归）</em>
+      </div>
+    </div>
+    <button class="btn btn-ps" id="btn-ps" onclick="scan('ps')">▼ 扫描 Parabolic Short</button>
+  </div>
+  <div class="cond-bar" style="border-color:rgba(255,92,110,.15)">
+    <span class="cond"><span class="cond-n cn-ps">1</span>几天/几周内涨≥50%（大盘）或≥100%（小盘代理）</span>
+    <span class="cond"><span class="cond-n cn-ps">2</span>连续收高 ≥ 3天</span>
+    <span class="cond" style="color:var(--green)"><span class="cond-n cn-ps">目标</span>EMA20 + EMA10（均值回归）</span>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="l">找到</div><div class="v" id="cnt-ps" style="color:var(--ps)">—</div></div>
+    <div class="stat"><div class="l">扫描数</div><div class="v" id="tot-ps">—</div></div>
+    <div class="stat"><div class="l">连涨≥5天</div><div class="v" id="c5-ps">—</div></div>
+    <div class="stat"><div class="l">涨幅≥100%</div><div class="v" id="r100-ps">—</div></div>
+    <div class="stat"><div class="l">5天内完成</div><div class="v" id="fast-ps">—</div></div>
+  </div>
+  <div class="toolbar">
+    <label>排序</label>
+    <select id="s-ps" onchange="rt('ps')">
+      <option value="score">评分</option>
+      <option value="bestRunPct">涨幅</option>
+      <option value="consecUp">连涨天数</option>
+      <option value="bestRunDays">完成天数（越少越好）</option>
+      <option value="adr">ADR%</option>
+    </select>
+    <label>最低评分</label>
+    <div class="rg">
+      <input type="range" id="m-ps" min="60" max="95" value="60" step="5" oninput="document.getElementById('ml-ps').textContent=this.value;rt('ps')">
+      <span id="ml-ps" style="font-size:12px">60</span>
+    </div>
+    <label>追加过滤</label>
+    <select id="f-ps" onchange="rt('ps')">
+      <option value="">无</option>
+      <option value="consec5">连涨≥5天</option>
+      <option value="run100">涨幅≥100%</option>
+      <option value="fast">5天内暴涨</option>
+    </select>
+    <button class="btn btn-sm" onclick="scan('ps')" style="margin-left:auto">↺ 重扫</button>
+  </div>
+  <div class="scanning" id="sc-ps"><div class="spin"></div><span id="scm-ps">扫描中...</span></div>
+  <div class="tw"><div id="c-ps"><div class="empty">点击「扫描 Parabolic Short」开始</div></div></div>
+</div>
+
+<!-- ═══ SECTORS ═══ -->
+<div class="panel" id="panel-sec">
+  <div class="s-header">
+    <div>
+      <strong style="font-size:15px">🔥 板块热度</strong>
+      <div class="desc" style="margin-top:4px">量能(35%) + 上涨占比(20%) + 均涨幅(20%) + 近52周高(15%) + ADR(10%)</div>
+    </div>
+    <button class="btn btn-sec" id="btn-sec" onclick="scanSec()">🔥 扫描板块</button>
+  </div>
+  <div class="scanning" id="sc-sec"><div class="spin"></div>扫描板块中...</div>
+  <div id="c-sec"><div class="empty">点击「扫描板块」开始</div></div>
+</div>
+
+<script>
+const D = { bo:[], ep:[], ps:[], sec:[] };
+let busy = false;
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function go(t) {
+  document.querySelectorAll('.tab').forEach(e => e.className = 'tab');
+  document.querySelectorAll('.panel').forEach(e => e.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('act-' + t);
+  document.getElementById('panel-' + t).classList.add('active');
+}
+go('bo');
+
+function setP(p) {
+  document.getElementById('prog').style.width = p + '%';
+  if (p >= 100) setTimeout(() => setP(0), 700);
+}
+
+// ── Scan ──────────────────────────────────────────────────────────────────────
+const EP = { bo:'/api/screen-breakout', ep:'/api/screen-ep', ps:'/api/screen-parabolic' };
+
+async function scan(t) {
+  if (busy) return; busy = true;
+  const btn = document.getElementById('btn-' + t);
+  btn.disabled = true;
+  document.getElementById('sc-' + t).classList.add('on');
+  document.getElementById('c-' + t).innerHTML = '<div class="loading"><div class="sp-lg"></div><div>扫描中，约需 30–60 秒...</div></div>';
+  setP(15);
+  try {
+    const r    = await fetch(EP[t]);
+    const json = await r.json();
+    if (json.error) throw new Error(json.error);
+    D[t] = json.data ?? [];
+    const tot = document.getElementById('tot-' + t);
+    if (tot) tot.textContent = json.total ?? '—';
+    document.getElementById('last-upd').textContent = '更新 ' + new Date(json.updatedAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    setP(100);
+    rt(t);
+  } catch(e) {
+    document.getElementById('c-' + t).innerHTML = `<div class="empty">⚠️ ${e.message}</div>`;
+    setP(0);
+  }
+  busy = false; btn.disabled = false;
+  document.getElementById('sc-' + t).classList.remove('on');
+}
+
+// ── Sectors ───────────────────────────────────────────────────────────────────
+async function scanSec() {
+  if (busy) return; busy = true;
+  const btn = document.getElementById('btn-sec');
+  btn.disabled = true;
+  document.getElementById('sc-sec').classList.add('on');
+  document.getElementById('c-sec').innerHTML = '<div class="loading"><div class="sp-lg"></div>扫描板块中...</div>';
+  setP(20);
+  try {
+    const r = await fetch('/api/sectors');
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+    D.sec = j.data ?? [];
+    setP(100);
+    renderSec();
+  } catch(e) {
+    document.getElementById('c-sec').innerHTML = `<div class="empty">⚠️ ${e.message}</div>`;
+    setP(0);
+  }
+  busy = false; btn.disabled = false;
+  document.getElementById('sc-sec').classList.remove('on');
+}
+
+const hC = h => h>=75?'#ff5c6e':h>=55?'#f5a623':h>=35?'#4d9eff':'#6b7a99';
+const hL = h => h>=75?'🔥 超热':h>=55?'🌡 热门':h>=35?'💧 温和':'❄ 清淡';
+
+function renderSec() {
+  if (!D.sec.length) { document.getElementById('c-sec').innerHTML = '<div class="empty">无数据</div>'; return; }
+  document.getElementById('c-sec').innerHTML = '<div class="sgrid">' + D.sec.map((s,i) => {
+    const col = hC(s.heat);
+    const cc = s.avgChg>0?'up':s.avgChg<0?'dn':'neu';
+    const movers = (s.topMovers??[]).map(m =>
+      `<div class="mv"><span style="font-weight:700">${m.ticker}</span><span class="${m.chg>0?'up':'dn'}">${m.chg>0?'+':''}${m.chg}% ×${m.volRatio}</span></div>`
+    ).join('');
+    return `<div class="sc ${i<3?'r'+(i+1):''}">
+      <div class="sct">
+        <div><div class="scn">${s.sector}</div><div class="scs">${s.tickerCount} 只</div></div>
+        <div><div class="hn" style="color:${col}">${s.heat}</div><div class="hl">${hL(s.heat)}</div></div>
+      </div>
+      <div class="hb"><div class="hbf" style="width:${s.heat}%;background:${col}"></div></div>
+      <div class="mg">
+        <div class="me"><div class="mel">均涨</div><div class="mev ${cc}">${s.avgChg>0?'+':''}${s.avgChg}%</div></div>
+        <div class="me"><div class="mel">量能</div><div class="mev">×${s.avgVolRatio.toFixed(1)}</div></div>
+        <div class="me"><div class="mel">上涨</div><div class="mev">${s.breadth}%</div></div>
+        <div class="me"><div class="mel">近高</div><div class="mev">${s.nearHighPct}%</div></div>
+      </div>
+      ${movers}
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// ── Render tables ─────────────────────────────────────────────────────────────
+const scCol = s => s>=85?'#2dd88a':s>=70?'#f5a623':'#6b7a99';
+const g = id => document.getElementById(id);
+
+function rt(t) {
+  const data  = D[t] ?? [];
+  const sk    = g('s-'+t)?.value ?? 'score';
+  const minSc = +(g('m-'+t)?.value ?? 60);
+  const filt  = g('f-'+t)?.value ?? '';
+
+  const list = data.filter(d => {
+    if (d.score < minSc) return false;
+    if (t==='bo') {
+      if (filt==='weeklyUp'   && !d.weeklyUp) return false;
+      if (filt==='tightConsol' && d.consolRangePct >= 10) return false;
+      if (filt==='highVol'    && d.volSurge < 2) return false;
+    }
+    if (t==='ep') {
+      if (filt==='bigGap' && d.gapPct < 20) return false;
+      if (filt==='bigVol' && d.volRatio < 5) return false;
+    }
+    if (t==='ps') {
+      if (filt==='consec5' && d.consecUp < 5) return false;
+      if (filt==='run100'  && d.bestRunPct < 100) return false;
+      if (filt==='fast'    && d.bestRunDays > 5) return false;
+    }
+    return true;
+  }).sort((a, b) => {
+    if (sk === 'bestRunDays') return a[sk] - b[sk]; // ascending for days
+    return b[sk] - a[sk];
+  });
+
+  // Update stat counts
+  if (t==='bo') {
+    g('cnt-bo').textContent = list.length;
+    g('tight-bo').textContent = list.filter(d=>d.consolRangePct<15).length;
+    g('vol2-bo').textContent  = list.filter(d=>d.volSurge>=2).length;
+    g('wk-bo').textContent    = list.filter(d=>d.weeklyUp).length;
+  } else if (t==='ep') {
+    g('cnt-ep').textContent  = list.length;
+    g('g20-ep').textContent  = list.filter(d=>d.gapPct>=20).length;
+    g('v5-ep').textContent   = list.filter(d=>d.volRatio>=5).length;
+    g('flat-ep').textContent = list.filter(d=>Math.abs(d.priorPerf3m)<5).length;
+  } else if (t==='ps') {
+    g('cnt-ps').textContent  = list.length;
+    g('c5-ps').textContent   = list.filter(d=>d.consecUp>=5).length;
+    g('r100-ps').textContent = list.filter(d=>d.bestRunPct>=100).length;
+    g('fast-ps').textContent = list.filter(d=>d.bestRunDays<=5).length;
+  }
+
+  if (!list.length) {
+    g('c-'+t).innerHTML = '<div class="empty">无符合结果<br><small style="color:var(--muted)">可降低最低评分</small></div>';
+    return;
+  }
+
+  g('c-'+t).innerHTML = `<table><thead><tr>${hdrs(t)}</tr></thead><tbody>${list.map(d=>row(t,d)).join('')}</tbody></table>`;
+}
+
+function hdrs(t) {
+  const base = '<th>股票</th><th>评分</th><th>价格</th><th>今日%</th><th>ADR%</th>';
+  if (t==='bo') return base+'<th>大涨幅</th><th>整理天数</th><th>整理宽度</th><th>Range扩张</th><th>量能</th><th>EMA</th><th>交易参考</th>';
+  if (t==='ep') return base+'<th>跳空%</th><th>量倍数</th><th>前3月涨幅</th><th>今日低（止损）</th><th>EMA</th><th>交易参考</th>';
+  if (t==='ps') return base+'<th>涨幅</th><th>完成天数</th><th>连涨天</th><th>止损HOD</th><th>目标EMA20</th><th>目标EMA10</th><th>交易参考</th>';
+}
+
+function row(t, d) {
+  const tv  = `https://www.tradingview.com/chart/?symbol=${d.ticker}`;
+  const sc  = d.score;
+  const col = scCol(sc);
+  const cc  = d.chg1d>0?'up':d.chg1d<0?'dn':'neu';
+  const scoreH = `<div class="sc-wrap"><span class="sc-n" style="color:${col}">${sc}</span><div class="sb"><div class="sbf" style="width:${sc}%;background:${col}"></div></div></div>`;
+  const symH   = `<td><div class="sym"><a href="${tv}" target="_blank">${d.ticker}</a></div><div class="sub">${d.sector}</div></td>`;
+
+  if (t==='bo') {
+    return `<tr>${symH}<td>${scoreH}</td>
+      <td><strong>$${d.price}</strong></td>
+      <td class="${cc}">${d.chg1d>0?'+':''}${d.chg1d}%</td>
+      <td>${d.adr}%</td>
+      <td class="up" style="font-weight:700">+${d.surgeMovePct}%</td>
+      <td>${d.consolBars} 天</td>
+      <td>${d.consolRangePct < 15 ? '<span class="up">':'<span class="neu">'}${d.consolRangePct}%</span></td>
+      <td class="${d.rangeExpansion>=1.5?'up':'amb'}">×${d.rangeExpansion}</td>
+      <td class="${d.volSurge>=2?'up':'neu'}">×${d.volSurge}</td>
+      <td style="font-size:11px;line-height:1.9">
+        <div>EMA10 $${d.ema10}</div><div>EMA20 $${d.ema20}</div>
+        <div class="${d.weeklyUp?'up':'neu'}" style="font-size:10px">${d.weeklyUp?'↗ 周线向上':'周线中性'}</div>
+      </td>
+      <td class="trade">
+        <div class="dir-long">▲ LONG</div>
+        <div>止损 <span class="sl-v">$${d.suggestedSL}</span> (-${d.slPct}%)</div>
+        <div>TP1 <span class="tp-v">$${d.tp1}</span> (3R)</div>
+        <div>TP2 <span class="tp-v">$${d.tp2}</span> (5R)</div>
+      </td></tr>`;
+  }
+  if (t==='ep') {
+    return `<tr>${symH}<td>${scoreH}</td>
+      <td><strong>$${d.price}</strong></td>
+      <td class="up">+${d.chg1d}%</td>
+      <td>${d.adr}%</td>
+      <td class="up" style="font-size:18px;font-weight:800">+${d.gapPct}%</td>
+      <td style="font-size:16px;font-weight:700;color:var(--ep)">×${d.volRatio}</td>
+      <td class="${Math.abs(d.priorPerf3m)<10?'up':'neu'}">${d.priorPerf3m>0?'+':''}${d.priorPerf3m}%
+        <div style="font-size:10px;color:var(--muted)">越平越好</div>
+      </td>
+      <td><strong>$${d.todayLow}</strong><div style="font-size:10px;color:var(--muted)">止损参考</div></td>
+      <td style="font-size:11px;line-height:1.9">
+        <div>EMA10 $${d.ema10??'—'}</div><div>EMA20 $${d.ema20??'—'}</div>
+      </td>
+      <td class="trade">
+        <div class="dir-long">▲ LONG</div>
+        <div>止损 <span class="sl-v">$${d.suggestedSL}</span> (-${d.slPct}%)</div>
+        <div>TP1 <span class="tp-v">$${d.tp1}</span> (3R)</div>
+        <div>TP2 <span class="tp-v">$${d.tp2}</span> (5R)</div>
+      </td></tr>`;
+  }
+  if (t==='ps') {
+    return `<tr>${symH}<td>${scoreH}</td>
+      <td><strong>$${d.price}</strong></td>
+      <td class="${cc}">${d.chg1d>0?'+':''}${d.chg1d}%</td>
+      <td>${d.adr}%</td>
+      <td class="up" style="font-size:17px;font-weight:800">+${d.bestRunPct}%</td>
+      <td class="${d.bestRunDays<=5?'dn':'amb'}" style="font-weight:700">${d.bestRunDays} 天</td>
+      <td class="dn" style="font-size:18px;font-weight:800">${d.consecUp} 天</td>
+      <td><strong class="sl-v">$${d.suggestedSL}</strong><div style="font-size:10px;color:var(--muted)">HOD止损</div></td>
+      <td><strong class="tp-v">$${d.tp1}</strong><div style="font-size:10px;color:var(--muted)">EMA20目标</div></td>
+      <td><strong class="tp-v">$${d.tp2}</strong><div style="font-size:10px;color:var(--muted)">EMA10目标</div></td>
+      <td class="trade">
+        <div class="dir-short">▼ SHORT</div>
+        <div>止损 <span class="sl-v">$${d.suggestedSL}</span> (+${d.slPct}%)</div>
+        <div>TP1 <span class="tp-v">$${d.tp1}</span> EMA20</div>
+        <div>TP2 <span class="tp-v">$${d.tp2}</span> EMA10</div>
+      </td></tr>`;
+  }
+}
+</script>
+</body>
+</html>
